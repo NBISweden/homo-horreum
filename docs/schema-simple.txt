@@ -1,0 +1,35 @@
+dataset (did, name[text], remote[text])
+
+// group can be control, t2d, prediabetes etc.
+person (pid, identifier[text], group[text], sex)
+
+visit (vid, visit_code[text], comment[text])
+
+// measurement
+measurement_experiment(meid, pid, vid, comment[text])
+measurement(mid, name[text], unit[text])
+measurement_value(mid, meid, value[text])
+
+person_snp(pid, snpid)
+snp (snpid, chromosome[text], pos[int], id[text], ref[text], alt[text])
+snp_extra_fields(snp_field_id, name[text])
+snp_extra(snpid, snp_field_id, snp_field_value[text])
+
+expression_experiment(eeid, pid, note[text])
+expression_transcript(etid, name[text])
+expression_value (eeid, etid, value[number])
+
+proteomics_experiment(peid, pid, note[text])
+proteomics_protein(protid, name[text])
+proteomics_value(peid, protid, value[number])
+
+metabolomics_experiment(meid, pid, note[text])
+metabolomics_metabolite(mbid, name[text])
+metabolomics_value(meid,pid, mbid, value[number])
+
+# Downsampling needs to be handled
+geometry (gid, mid, x, y, z) (mappning mot världskoordinater, tre värden).
+geometry_mapping (mid, comment[text], xmult[float], ymult[float], zmult[float])
+geometry_measurements (gmid, gid, name[text], unit[text])
+visit_geometry (pid, vid, gid, gmid, value[number?])
+geometry_visit (pid, vid, comment[text])

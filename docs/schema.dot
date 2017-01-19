@@ -1,0 +1,94 @@
+digraph G {
+    node [ shape=record ]
+    subgraph cluster_0 {
+        person [label="{Person|pid\lidentifier\lgroup\lsex\l}"]
+        visit [label="{Visit|vid\lvisit\lcomment\l}"]
+        label="Person"
+    }
+
+    subgraph cluster_1 {
+        measurement_experiment [ label="{Measurement Experiment|meid\lpid\lvid\lcomment\l}" ]
+        measurement_experiment -> { visit, person }
+        measurement [label="{Measurement|mid\lname\lunit\l}"]
+        measurement_value [label="{Measurement Value|mid\lmeid\lvalue\l}"]
+        measurement_value -> {measurement, measurement_experiment}
+        label="Measurements"
+    }
+
+    subgraph cluster_2 {
+        person_snp [label="{Person SNP|pid\lsnpid\l}"]
+        snp        [label="{SNP|snpid\lchromosome\lpos\lid\lref\lalt\l}"]
+        snp_extra_fields [label="{SNP Extra Fields|snp_field_id\lname\l}"]
+        snp_extra        [label="{SNP Extra|snpid\lsnp_field_id\lsnp_field_value}"]
+        person_snp -> { person, snp }
+        snp_extra -> {snp_extra_fields, snp }
+        label="SNPs"
+    }
+
+    subgraph cluster_3 {
+        expression_experiment [label="{Expression Experimient|eeid\lpid\lnote\l}"]
+        expression_transcript [label="{Expression Transcript|etid\lname\l}"]
+        expression_value      [label="{Expression Value|eeid\letid\lvalue\l}"]
+        expression_value -> {expression_transcript, expression_experiment}
+        expression_experiment -> person
+        label="Expressions"
+    }
+
+    subgraph cluster_4 {
+        proteomics_experiment [label="{Proteomics Experimient|peid\lpid\lnote\l}"]
+        proteomics_transcript [label="{Proteomics Protein|ppid\lname\l}"]
+        proteomics_value      [label="{Proteomics Value|peid\lppid\lvalue\l}"]
+        proteomics_value -> {proteomics_transcript, proteomics_experiment}
+        proteomics_experiment -> person
+        label="Proteomics"
+    }
+
+    subgraph cluster_5 {
+        geometry_point [label="{Geometry Point|gid\lmid\lx\ly\lz\l}"]
+        geometry_mapping [label="{Geometry Mapping|mid\lcomment\lxmult\lymult\lzmult\l}"]
+        geometry_measurement_type [label="{Geometry Measurement Type|gmtid\lname\lunit\l}"]
+        geometry_visit [label="{Geometry Visit|gvid\lpid\lvid\lcomment\l}"]
+        geometry_measurement [label="{Geometry Measurement|gvid\lgid\lgmtidvalue\l}"]
+        geometry_measurement -> {geometry_visit, geometry_measurement_type, geometry_point}
+        geometry_point -> geometry_mapping
+        geometry_visit -> {person, visit}
+    }
+}
+/*
+dataset (did, name[text], remote[text])
+
+// group can be control, t2d, prediabetes etc.
+person (pid, identifier[text], group[text], sex)
+
+visit (vid, visit[text], comment[text])
+
+// measurement
+measurement_experiment(meid, pid, vid, comment[text])
+measurement(mid, name[text], unit[text])
+measurement_value(mid, meid, value[text])
+
+person_snp(pid, snpid)
+snp (snpid, chromosome[text], pos[int], id[text], ref[text], alt[text])
+snp_extra_fields(snp_field_id, name[text])
+snp_extra(snpid, snp_field_id, snp_field_value[text])
+
+expression_experiment(eeid, pid, note[text])
+expression_transcript(etid, name[text])
+expression_value (eeid, etid, value[number])
+
+proteomics_experiment(peid, pid, note[text])
+proteomics_protein(protid, name[text])
+proteomics_value(peid, protid, value[number])
+
+metabolomics_experiment(meid, pid, note[text])
+metabolomics_metabolite(mbid, name[text])
+metabolomics_value(meid,pid, mbid, value[number])
+
+# Downsampling needs to be handled
+geometry (gid, mid, x, y, z) (mappning mot världskoordinater, tre värden).
+geometry_mapping (mid, comment[text], xmult[float], ymult[float], zmult[float])
+geometry_measurements (gmid, gid, name[text], unit[text])
+visit_geometry (pid, vid, gid, gmid, value[number?])
+geometry_visit (pid, vid, comment[text])
+*/
+
