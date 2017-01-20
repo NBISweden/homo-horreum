@@ -1,11 +1,11 @@
 dataset (did, name[text], remote[text])
 
-// group can be control, t2d, prediabetes etc.
+# group can be control, t2d, prediabetes etc.
 person (pid, identifier[text], group[text], sex)
 
 visit (vid, visit_code[text], comment[text])
 
-// measurement
+# measurement
 measurement_experiment(meid, pid, vid, comment[text])
 measurement(mid, name[text], unit[text])
 measurement_value(mid, meid, value[text])
@@ -15,17 +15,22 @@ variant (variant_id, chromosome[text], pos[int], id[text], ref[text], alt[text])
 variant_extra_fields(variant_field_id, name[text])
 variant_extra(variant_id, variant_field_id, variant_field_value[text])
 
+
+# These ones are so similar so they could really be modeled in the same 4
+# tables instead of three for each as we have here. But I suspect that it will
+# be easier to work with them like this.
 expression_experiment(eeid, pid, note[text])
-expression_transcript(etid, name[text])
-expression_value (eeid, etid, value[number])
+expression_entity(enid, name[text])
+expression_value (eeid, enid, value[number])
 
 proteomics_experiment(peid, pid, note[text])
-proteomics_protein(protid, name[text])
-proteomics_value(peid, protid, value[number])
+proteomics_entity(pnid, name[text])
+proteomics_value(peid, pnid, value[number])
 
 metabolomics_experiment(meid, pid, note[text])
-metabolomics_metabolite(mbid, name[text])
-metabolomics_value(meid,pid, mbid, value[number])
+metabolomics_entity(mnid, name[text])
+metabolomics_value(meid, mnid, value[number])
+
 
 # Downsampling needs to be handled
 geometry (gid, mid, x, y, z) (mappning mot världskoordinater, tre värden).
