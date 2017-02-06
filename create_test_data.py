@@ -1,5 +1,6 @@
 import uuid
 import random
+import sqlalchemy as sa
 
 def generate_identifier():
     return uuid.uuid4().hex[:5].upper()
@@ -25,3 +26,25 @@ def generate_variant_data():
 
 def generate_expression_data():
     pass
+
+
+def insert_variants(num=100):
+    engine = sa.create_engine('sqlite:///test.db', echo=False)
+    metadata = sa.MetaData()
+    variant = sa.Table('variant', metadata, autoload=True, autoload_with=engine)
+    conn = engine.connect()
+    insert = variant.insert()
+    trans = conn.begin()
+    for i in range(num):
+        v = generate_variant_data()
+        conn.execute(insert,
+                chromosome=v[0],
+                pos=v[1],
+                identifier=v[2],
+                ref=v[3],
+                alt=v[4],
+                )
+    trans.commit()
+
+if __name__ == '__main__':
+    insert_variants(1000000)
