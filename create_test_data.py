@@ -24,9 +24,11 @@ def generate_variant_data():
             generate_vcf_identifier(),   # SNP id
             ref, alt)
 
-def generate_expression_data():
-    pass
+def generate_expression_identifier():
+    return "exp{:05}".format(random.randint(1,50000)) # For genes, 50000, transcripts=250000
 
+def generate_expression_data():
+    return (generate_expression_identifier(), int(abs(random.normalvariate(100, 50))))
 
 def insert_variants(num=100):
     engine = sa.create_engine('sqlite:///test.db', echo=False)
@@ -47,4 +49,5 @@ def insert_variants(num=100):
     trans.commit()
 
 if __name__ == '__main__':
-    insert_variants(1000000)
+    print("Hello Cruel world!\n")
+    insert_variants(1000)
