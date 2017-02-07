@@ -3,7 +3,7 @@ import numpy as np
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print('Usage: %s <in-vtk-file> <out-txt-file>' % argv[0])
+        print('Usage: %s <in-vtk-file> <out-txt-file>' % sys.argv[0])
 
     in_file = sys.argv[1]
     out_file = sys.argv[2]
