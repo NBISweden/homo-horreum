@@ -42,6 +42,7 @@ def create_person_variants(num=100):
 
     trans = conn.begin()
     for i in range(num):
+        print("Creating variant {}".format(i))
         v = generate_variant_data()
 
         res = conn.execute(insert_variant, chromosome=v[0], pos=v[1], identifier=v[2], ref=v[3], alt=v[4])
