@@ -40,15 +40,17 @@ def create_person_variants(num=100):
     insert_variant = variant.insert()
     insert_link    = person_variant.insert()
 
+    trans = conn.begin()
     for i in range(num):
         v = generate_variant_data()
 
         res = conn.execute(insert_variant, chromosome=v[0], pos=v[1], identifier=v[2], ref=v[3], alt=v[4])
         variant_key = res.inserted_primary_key[0]
-        # TODO Insert with some probability
         for p in persons:
-            conn.execute(insert_link, person_id=p[0], variant_id=variant_key)
+            if random.random() < 0.4:
+                conn.execute(insert_link, person_id=p[0], variant_id=variant_key)
+    trans.commit()
 
 
 if __name__ == '__main__':
-    create_person_variants(2)
+    create_person_variants(500)
