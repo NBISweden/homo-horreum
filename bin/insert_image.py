@@ -33,8 +33,6 @@ def insert_image(patient, image_file):
 
     coords = get_coords(img['dimensions'], engine)
 
-    trans = conn.begin()
-
     dimensions = img['dimensions']
     imgdata = img['img']
     data = []
@@ -47,12 +45,8 @@ def insert_image(patient, image_file):
                              "coord_id": cid,
                              "value": value})
 
-    pbar = tqdm(desc="Inserting into db", total=len(data))
+    print("Inserting {} values".format(len(data)))
     conn.execute(points_tbl.insert(), data)
-    pbar.update(len(data))
-
-    trans.commit()
-    pbar.close()
 
 
 def get_coords(dimensions, engine):
@@ -61,9 +55,6 @@ def get_coords(dimensions, engine):
     add_missing_coords(dimensions, coords_tbl, engine)
 
     result = engine.execute(coords_tbl.select())
-    #dimensions[0]+=2
-    #dimensions[1]+=2
-    #dimensions[2]+=2
 
     lookup = np.zeros(dimensions)
     for i in result:
@@ -103,33 +94,33 @@ def add_missing_coords(dimensions, coords_tbl, engine):
 
     data = []
 
-    if x2 > x1:
-        for x in tqdm(range(x1+1, x2), "Adding x"):
+    if x2 > x1+1:
+        for x in tqdm(range(x1, x2), "Collecting x"):
             for y in range(max(y1,y2)):
                 for z in range(max(z1,z2)):
                     data.append({ 'x': x, 'y': y, 'z': z })
 
-    if y2 > y1:
-        for y in tqdm(range(y1+1, y2), "Adding y"):
+    if y2 > y1+1:
+        for y in tqdm(range(y1, y2), "Collecting y"):
             for x in range(x1):
                 for z in range(max(z1,z2)):
                     data.append({ 'x': x, 'y': y, 'z': z })
 
-    if z2 > z1:
-        for z in tqdm(range(z1, z2), "Adding z"):
+    if z2 > z1+1:
+        for z in tqdm(range(z1, z2), "Collecting z"):
             for x in range(x1):
                 for y in range(y1):
                     data.append({ 'x': x, 'y': y, 'z': z })
 
     if len(data)>1:
-        print("Adding {} new datapoints".format(len(data)))
+        print("Inserting {} coordinates".format(len(data)))
         engine.execute(coords_tbl.insert(), data)
-
+        print("Done")
 
 def read_image(image_file):
     with open(image_file) as f:
         ## First 10 lines are headerlines
-        for i in range(0, 10):
+        for i in range(10):
             (tag, *vals) = str(f.readline()).strip().split(' ')
             if tag == 'DIMENSIONS':
                 dims = list(int(v) for v in vals)
@@ -170,15 +161,10 @@ def get_max_dimensions(engine, tbl):
     return res
 
 if __name__ == '__main__':
-    #engine = sa.create_engine('sqlite:///test.db', echo=False)
-    #coords_tbl = sa.Table('coords', sa.MetaData(), autoload=True, autoload_with=engine)
+    if len(sys.argv) < 2:
+        print("NEED ARGUMENTS")
 
-    #img = read_image('/Users/johanviklund/Downloads/image-sample-data/500158_500022_fat_percent.vtk')
-    #for n1 in img['img']:
-    #    for n2 in n1:
-    #        for n3 in n2:
-    #            print(n3)
-    #dimensions = (4,4,4)
-    #add_missing_coords(dimensions, coords_tbl, engine)
+    patient = sys.argv[1]
+    file = sys.argv[2]
 
-    insert_image('pt087', '/Users/johanviklund/Downloads/image-sample-data/500158_500022_fat_percent.vtk')
+    insert_image(patient, file)

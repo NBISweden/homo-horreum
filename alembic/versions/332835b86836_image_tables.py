@@ -40,7 +40,7 @@ def upgrade():
     op.create_table('points',
             sa.Column('img_id', sa.Integer, sa.ForeignKey('img.id')),
             sa.Column('coord_id', sa.Integer, sa.ForeignKey('coords.id')),
-            sa.Column('value', sa.Float)
+            sa.Column('value', sa.Float())
     )
 
 
