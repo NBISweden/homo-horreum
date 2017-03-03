@@ -42,5 +42,7 @@ if __name__ == '__main__':
 
         img = np.fromfile(f, dtype).astype('f8') # Read and convert to little endian
         img = img.reshape(dims[::-1]) # Reshape to the extracted dimensions
+        print("IMG")
+        print(img)
 
     np.savetxt(out_file, img.reshape(n), '%.1f', ';')
