@@ -4,7 +4,7 @@ from tqdm import tqdm
 import sys
 import argparse
 
-def insert_image(patient, image_file, image_type):
+def insert_image(person, image_file, image_type):
     engine = sa.create_engine('sqlite:///test.db', echo=False)
     metadata = sa.MetaData()
 
@@ -13,11 +13,11 @@ def insert_image(patient, image_file, image_type):
     points_tbl = sa.Table('points', metadata, autoload=True, autoload_with=engine)
 
 
-    person_sel = person_tbl.select(person_tbl.c.identifier == patient)
+    person_sel = person_tbl.select(person_tbl.c.identifier == person)
     person = engine.execute(person_sel).fetchone()
 
     if not person:
-        sys.stderr.write("Can't find anyone in the database with the id {}\n".format(patient))
+        sys.stderr.write("Can't find anyone in the database with the id {}\n".format(person))
         sys.exit(1)
 
     try:
@@ -172,9 +172,9 @@ def get_max_dimensions(engine, tbl):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Insert an image in the database")
-    parser.add_argument('--patient', type=str, required=True, help="Patient ID")
+    parser.add_argument('--person', type=str, required=True, help="Person ID")
     parser.add_argument('--image',   type=str, required=True, help="VTK image file")
     parser.add_argument('--type',    type=str, required=True, help="Type of image (fat, water, etc.)")
     args = parser.parse_args()
 
-    insert_image(args.patient, args.image, args.type)
+    insert_image(args.person, args.image, args.type)
