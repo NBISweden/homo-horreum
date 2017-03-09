@@ -66,27 +66,27 @@ def get_coords(dimensions, engine):
 def add_missing_coords(dimensions, coords_tbl, engine):
     dim_max_db = get_max_dimensions(engine, coords_tbl)
 
-## This should work as an algorithm, for 2d case, imagine that we start with
-# area O (as in original) and we want to expand it to the outer below in the
-# figure.
-#     y
-#     |
-#  y2 +--+-----+
-#     |  |     |
-#     |2 |     |
-#  y1 +--+  1  |
-#     |  |     |
-#     |O |     |
-#     +--+-----+-- x
-#    0   x1    x2
-#
-# 1. Expand in x direction:
-#    * let x go from x1 to x2
-#    * let y go from 0 to max(y1,y2)
-#    * create coord
-# 2. Expand in y direction
-#    * let y go from y1 to y2
-#    * let x go from 0 to x1
+    ## This should work as an algorithm, for 2d case, imagine that we start with
+    # area O (as in original) and we want to expand it to the outer below in the
+    # figure.
+    #     y
+    #     |
+    #  y2 +--+-----+
+    #     |  |     |
+    #     |2 |     |
+    #  y1 +--+  1  |
+    #     |  |     |
+    #     |O |     |
+    #     +--+-----+-- x
+    #    0   x1    x2
+    #
+    # 1. Expand in x direction:
+    #    * let x go from x1 to x2
+    #    * let y go from 0 to max(y1,y2)
+    #    * create coord
+    # 2. Expand in y direction
+    #    * let y go from y1 to y2
+    #    * let x go from 0 to x1
 
     (x1, x2) = (dim_max_db[0], dimensions[0])
     (y1, y2) = (dim_max_db[1], dimensions[1])
