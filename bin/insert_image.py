@@ -2,8 +2,9 @@ import numpy as np
 import sqlalchemy as sa
 from tqdm import tqdm
 import sys
+import argparse
 
-def insert_image(patient, image_file):
+def insert_image(patient, image_file, image_type):
     engine = sa.create_engine('sqlite:///test.db', echo=False)
     metadata = sa.MetaData()
 
@@ -15,7 +16,15 @@ def insert_image(patient, image_file):
     person_sel = person_tbl.select(person_tbl.c.identifier == patient)
     person = engine.execute(person_sel).fetchone()
 
-    img = read_image(image_file)
+    if not person:
+        sys.stderr.write("Can't find anyone in the database with the id {}\n".format(patient))
+        sys.exit(1)
+
+    try:
+        img = read_image(image_file)
+    except FileNotFoundError:
+        sys.stderr.write("Can't find the image file {}\n".format(image_file))
+        sys.exit(1)
 
     conn = engine.connect()
     conn.execute('pragma foreign_keys=OFF')
@@ -24,7 +33,7 @@ def insert_image(patient, image_file):
     img_ins = img_tbl.insert()
     res = conn.execute(img_ins,
             person_id = person[0],
-            type = 'TODO',
+            type = image_type,
             dimensions  = ",".join([str(x) for x in img['dimensions']]),
             origin  = ",".join([str(x) for x in img['origin']]),
             spacing = ",".join([str(x) for x in img['spacing']])
@@ -161,10 +170,11 @@ def get_max_dimensions(engine, tbl):
     return res
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("NEED ARGUMENTS")
 
-    patient = sys.argv[1]
-    file = sys.argv[2]
+    parser = argparse.ArgumentParser(description="Insert an image in the database")
+    parser.add_argument('--patient', type=str, required=True, help="Patient ID")
+    parser.add_argument('--image',   type=str, required=True, help="VTK image file")
+    parser.add_argument('--type',    type=str, required=True, help="Type of image (fat, water, etc.)")
+    args = parser.parse_args()
 
-    insert_image(patient, file)
+    insert_image(args.patient, args.image, args.type)
