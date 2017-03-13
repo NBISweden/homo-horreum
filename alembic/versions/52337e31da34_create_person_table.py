@@ -20,7 +20,7 @@ def upgrade():
     op.create_table(
         'person',
         sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('identifier', sa.String, nullable=False),
+        sa.Column('identifier', sa.String, nullable=False, unique=True),
         sa.Column('group', sa.String, nullable=False),
         sa.Column('sex', sa.Enum('M','F'), nullable=False)
     )
