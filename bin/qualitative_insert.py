@@ -1,76 +1,123 @@
 import sqlalchemy as sa
 import argparse
+import json
 
-class qual_inserter(object):
+class InserterError(Exception):
+    pass
+
+class QualInserter(object):
     def __init__(self):
         engine = sa.create_engine('sqlite:///test.db', echo=False)
         self.engine = engine
+        self.conn = engine.connect()
         metadata = sa.MetaData()
 
         self.person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
         self.visit_tbl  = sa.Table('visit',  metadata, autoload=True, autoload_with=engine)
         self.m_val_tbl = sa.Table('measurement_value', metadata, autoload=True, autoload_with=engine)
-        self.m_exp_tbl = sa.Table('measurement_experiment', metadata, autoload=True, autoload_with=engine)
         self.m_ent_tbl = sa.Table('measurement_entity', metadata, autoload=True, autoload_with=engine)
 
-    def insert(self, filename):
-        ## Redo this algorithm as follows:
-# 1. every row gets turned into a hash with the header value as key for each
-# entity
-# 2. Some of the keys are special, they are easy to take care of immidiately
-# and insert the correct data.
-# 3. all the unknown stuff is filtered and inserted as fields
-
+    def parse_file(self, filename):
         with open(filename, 'r') as f:
+            fields_map = []
             for line in f:
-                (person, *fields) = line.split("\t")
+                fields = line.split("\t")
                 if line.startswith('#'):
-                    fields_map = self.get_fields_map_for(fields)
+                    fields[0] = fields[0][1:] # Remove comment sign from name
+                    fields_map = fields
+                    nfields = len(fields)
                     continue
-                p = self.get_person(person)
-                self.insert_values(p, fields_map, fields)
 
-    def get_person(self, id):
-        person_sel = self.person_tbl.select(self.person_tbl.c.identifier == person)
-        person = self.engine.execute(person_sel).fetchone()
+                yield { fields_map[idx]: fields[idx] for idx in range(nfields) }
 
-        if person:
-            return person
+    def insert(self, filename):
+        person_keys = {'ID': 'identifier', 'Group': 'group', 'Sex': 'sex'}
+        visit_keys = {'Visit Code': 'visit_code', 'Visit Date': 'visit_date', 'Visit Comment': 'comment'}
 
-        sys.stderr.write("Can't find anyone in the database with the id {}\n".format(person))
-        sys.exit(1)
+        def extract_dict(d, keys):
+            out = dict()
+            for k,v in list(d.items()):
+                if k in keys:
+                    d.pop(k)
+                    out[keys[k]] = v
+            return out
 
-    def insert_values(self, person, fields_map, fields):
-        pass
+        trans = self.conn.begin()
 
-    def get_fields_map_for(self, fields):
-        return [ self._get_or_create_entity(f) for f in fields ]
-
-    def _get_or_create_entity(self, f):
-        tbl = self.m_ent_tbl
-        sel = tbl.select(tbl.c.name == f)
-        res = self.engine.execute(sel).fetchone()
-        if res:
-            print("FOUND IT")
-            return res
-
-        ins = tbl.insert().values(name=f, unit='NA')
-        self.engine.execute(ins)
-
-        res = self.engine.execute(sel).fetchone()
-        if res:
-            print("CREATING")
-            return res
-
-        raise Error("WTF??")
+        for entry in self.parse_file(filename):
+            person = extract_dict(entry, person_keys)
+            visit  = extract_dict(entry, visit_keys)
             
-    
+            pid = self.get_or_create_person(person)
+            vid = self.get_or_create_visit(pid, visit)
+            self.insert_measurements(vid, entry)
+
+        trans.commit()
+
+    def insert_measurements(self, vid, entry):
+        for key, value in entry.items():
+            entity = self._get_entity(key)
+            self._insert_value(vid, entity, value)
+
+    def _get_entity(self, key):
+        return self.get_or_create(self.m_ent_tbl, { 'name': key })
+
+    def _insert_value(self, vid, entity, value):
+        return self.get_or_create(self.m_val_tbl,
+                { 
+                    'visit_id': vid,
+                    'measurement_entity_id': entity,
+                    'value': value
+                },
+                return_primary_key=False
+            )
+
+    def get_or_create_visit(self, pid, visit):
+        visit['person_id'] = pid
+        return self.get_or_create(self.visit_tbl, visit)
+
+    def get_or_create_person(self, person):
+        if len(person) == 1:
+            p = self._get(self.person_tbl, person)
+            if not p:
+                raise InserterError("Can't find any person with {}".format(json.dumps(person)))
+            return p
+        return self.get_or_create(self.person_tbl, person)
+
+    def _get(self, table, info, return_primary_key=True):
+        s = table.select()
+        for k, v in info.items():
+            s = s.where( table.c[k] == v )
+        r = self.conn.execute(s).fetchone()
+
+        if not return_primary_key:
+            return None
+        if r:
+            return r.id
+        return None
+
+    def _insert(self, table, info, return_primary_key=True):
+        res = self.conn.execute(table.insert(), [ info ])
+        if not return_primary_key:
+            return
+        id = res.inserted_primary_key
+        return id[0]
+
+    def get_or_create(self, table, info, return_primary_key=True):
+        r = self._get(table, info, return_primary_key)
+        if r:
+            return r
+        try:
+            return self._insert(table,info,return_primary_key)
+        except sa.exc.SQLAlchemyError:
+            raise InserterError("Could not create {} from {}".format(table.name, json.dumps(info)))
 
 if __name__ == '__main__':
-    #parser = argparse.ArgumentParser(description="Insert an qualitative datat in the database")
-    #parser.add_argument('--file',   type=str, required=True, help="TSV file containing data")
-    #args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Insert an qualitative datat in the database")
+    parser.add_argument('--file',   type=str, required=True, help="TSV file containing data")
+    args = parser.parse_args()
 
-    #qual_inserter().insert(args.file)
-    res = qual_inserter()._get_or_create_entity("Hello2")
-    print(res)
+    try:
+        QualInserter().insert(args.file)
+    except InserterError as e:
+        print("ERROR!: {}".format(e))
