@@ -48,9 +48,12 @@ class QualInserter(object):
             person = extract_dict(entry, person_keys)
             visit  = extract_dict(entry, visit_keys)
             
-            pid = self.get_or_create_person(person)
-            vid = self.get_or_create_visit(pid, visit)
-            self.insert_measurements(vid, entry)
+            try:
+                pid = self.get_or_create_person(person)
+                vid = self.get_or_create_visit(pid, visit)
+                self.insert_measurements(vid, entry)
+            except InserterError as e:
+                print("ERROR!: {}".format(e))
 
         trans.commit()
 
