@@ -12,7 +12,7 @@ person_variant = sa.Table('person_variant', metadata, autoload=True, autoload_wi
 
 conn = engine.connect()
 
-def get_all_patients():
+def get_all_persons():
     select = sa.sql.select([person])
     result = conn.execute(select)
     out = []
@@ -35,7 +35,7 @@ def generate_variant_data():
             ref, alt)
 
 def create_person_variants(num=100):
-    persons = get_all_patients()
+    persons = get_all_persons()
 
     insert_variant = variant.insert()
     insert_link    = person_variant.insert()
