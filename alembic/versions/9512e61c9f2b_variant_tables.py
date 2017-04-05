@@ -23,7 +23,10 @@ def upgrade():
             sa.Column('pos', sa.Integer, nullable=False),
             sa.Column('identifier', sa.String(), nullable=False),
             sa.Column('ref', sa.String(), nullable=False),
-            sa.Column('alt', sa.String(), nullable=False)
+            sa.Column('alt', sa.String(), nullable=False),
+            sa.Column('qual', sa.String(), nullable=False),
+            sa.Column('filter', sa.String(), nullable=False),
+            sa.Column('info', sa.String(), nullable=False)
     )
 
     op.create_table('variant_extra_fields',
@@ -39,7 +42,8 @@ def upgrade():
 
     op.create_table('person_variant',
             sa.Column('person_id', sa.Integer, sa.ForeignKey('person.id')),
-            sa.Column('variant_id', sa.Integer, sa.ForeignKey('variant.id'))
+            sa.Column('variant_id', sa.Integer, sa.ForeignKey('variant.id')),
+            sa.Column('variant_type', sa.Text)
     )
 
 
