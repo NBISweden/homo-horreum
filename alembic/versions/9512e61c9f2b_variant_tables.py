@@ -26,7 +26,8 @@ def upgrade():
             sa.Column('alt', sa.String(), nullable=False),
             sa.Column('qual', sa.String(), nullable=False),
             sa.Column('filter', sa.String(), nullable=False),
-            sa.Column('info', sa.String(), nullable=False)
+            sa.Column('info', sa.String(), nullable=False),
+            sa.Column('format', sa.String(), nullable=False)
     )
 
     op.create_table('variant_extra_fields',
