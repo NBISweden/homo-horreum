@@ -9,22 +9,16 @@ def get_image(id, filename):
 
     img_tbl    = sa.Table('img'   , metadata, autoload=True, autoload_with=engine)
     points_tbl = sa.Table('points', metadata, autoload=True, autoload_with=engine)
-    coords_tbl = sa.Table('coords', metadata, autoload=True, autoload_with=engine)
 
     img_sel = img_tbl.select(img_tbl.c.id == id)
     img = engine.execute(img_sel).fetchone()
 
     points_sel = sa.select([
-            coords_tbl.c.x,
-            coords_tbl.c.y,
-            coords_tbl.c.z,
+            points_tbl.c.coord_no,
             points_tbl.c.value
         ]
     ).where(
-        sa.and_(
-            points_tbl.c.img_id == id,
-            points_tbl.c.coord_id == coords_tbl.c.id
-        )
+        points_tbl.c.img_id == id,
     )
 
     points = engine.execute(points_sel).fetchall()
@@ -47,12 +41,11 @@ def get_image(id, filename):
         f.write("LOOKUP_TABLE default\n")
 
         dims = list( map(lambda x: int(x), img[img_tbl.c.dimensions].split(",")) )
-        npimg = np.zeros(dims).astype(np.dtype('>f8'))
+        npimg = np.zeros(n_points).astype(np.dtype('>f8'))
         for p in points:
-            npimg[p[0],p[1],p[2]] = p[3]
+            npimg[p[0]] = p[1]
 
-        binary_data = npimg.reshape(n_points)
-        binary_data.tofile(f)
+        npimg.tofile(f)
 
 
 if __name__ == '__main__':

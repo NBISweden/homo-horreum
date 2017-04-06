@@ -28,22 +28,13 @@ def upgrade():
             sa.Column('spacing', sa.String),
     )
 
-    coords_tbl = op.create_table('coords',
-            sa.Column('id', sa.Integer, primary_key=True),
-            sa.Column('x', sa.Integer, nullable=False),
-            sa.Column('y', sa.Integer, nullable=False),
-            sa.Column('z', sa.Integer, nullable=False),
-    )
-
-    op.bulk_insert(coords_tbl, [{'x': 0, 'y': 0, 'z': 0}])
-
     op.create_table('points',
             sa.Column('img_id', sa.Integer, sa.ForeignKey('img.id')),
-            sa.Column('coord_id', sa.Integer, sa.ForeignKey('coords.id')),
+            sa.Column('coord_no', sa.Integer),
             sa.Column('value', sa.Float())
     )
 
 
 def downgrade():
-    for table in ['points', 'img', 'coords']:
+    for table in ['points', 'img']:
         op.drop_table(table)
