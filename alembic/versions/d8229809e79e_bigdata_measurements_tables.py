@@ -1,4 +1,4 @@
-"""BigData measurements tables
+"""Metabolomics measurements tables
 
 Revision ID: d8229809e79e
 Revises: 9512e61c9f2b
@@ -17,27 +17,32 @@ depends_on = '52337e31da34'
 
 
 def upgrade():
-    for type in ['expression', 'proteomics', 'metabolomics']:
-        op.create_table('{}_entity'.format(type),
-                sa.Column('id', sa.Integer, primary_key=True),
-                sa.Column('name', sa.String, nullable=False)
-        )
-    
-        op.create_table('{}_experiment'.format(type),
-                sa.Column('id', sa.Integer, primary_key=1),
-                sa.Column('person_id', sa.Integer, sa.ForeignKey('person.id')),
-                sa.Column('note', sa.Text(), nullable=True)
+    op.create_table('metabolomics_experiment',
+            sa.Column('id', sa.Integer, primary_key=1),
+            sa.Column('person_id', sa.Integer, sa.ForeignKey('person.id')),
+            sa.Column('note', sa.Text(), nullable=True)
         )
 
-        op.create_table('{}_value'.format(type),
-                sa.Column('{}_experiment_id'.format(type), sa.Integer, sa.ForeignKey('{}_experiment.id'.format(type))),
-                sa.Column('{}_entity_id'.format(type), sa.Integer, sa.ForeignKey('{}_transcript.id'.format(type))),
-                sa.Column('value', sa.Float(), nullable=False)
+    op.create_table('metabolomics_value',
+            sa.Column('metabolomics_experiment_id', sa.Integer, sa.ForeignKey('metabolomics_experiment.id')),
+            sa.Column('metabolomics_entity_id', sa.Integer, sa.ForeignKey('metabolomics_entity.id')),
+            sa.Column('value', sa.Float(), nullable=False)
+        )
+
+    op.create_table('metabolomics_entity',
+            sa.Column('id', sa.Integer, primary_key=True),
+            sa.Column('name', sa.String, nullable=False)
+        )
+
+    op.create_table('metabolomics_entity_info',
+            sa.Column('metabolomics_entity_id', sa.Integer, sa.ForeignKey('metabolomics_entity.id')),
+            sa.Column('name', sa.String, nullable=False),
+            sa.Column('value', sa.String, nullable=False),
         )
 
 
 def downgrade():
-    for type in ['expression', 'proteomics', 'metabolomics']:
-        op.drop_table('{}_entity'.format(type))
-        op.drop_table('{}_experiment'.format(type))
-        op.drop_table('{}_value'.format(type))
+    op.drop_table('metabolomics_entity')
+    op.drop_table('metabolomics_experiment')
+    op.drop_table('metabolomics_value')
+    op.drop_table('metabolomics_entity_info')
