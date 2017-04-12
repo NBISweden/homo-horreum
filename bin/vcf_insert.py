@@ -29,14 +29,22 @@ class VCFInserter(object):
 
         person_var_ins = self.person_variant_tbl.insert()
 
+        max_variant_id = 0
+        res = self.engine.execute("SELECT max(id) FROM variant")
+        for row in res:
+            if row[0] != None:
+                max_variant_id = row[0]
+
+        var_inserts = []
+        link_inserts = []
+
         with open(filename, 'r') as f:
-            pbar = tqdm.tqdm(total=719697, mininterval=1)
+            #pbar = tqdm.tqdm(mininterval=1)
             fields = []
             persons = []
 
-            for line in f:
+            for line in tqdm.tqdm(f, desc="Inserting vcf file", mininterval=1, unit=" rows", unit_scale=True):
                 line = line.strip()
-                pbar.update(1)
                 if line.startswith('##'):
                     continue
 
@@ -47,16 +55,28 @@ class VCFInserter(object):
 
                 data = line.split("\t")
 
-                variant = self.insert_variant( data[:9] )
+                max_variant_id += 1
+                variant_ds = { VCFInserter.vcf_headers[i]: data[i] for i in range(len(VCFInserter.vcf_headers)) }
+                variant_ds['id'] = max_variant_id
+                var_inserts.append(variant_ds)
 
-                person_variant_ds = [
-                        {'person_id': persons[i], 'variant_id': variant, 'variant_type': data[i+9]  }
+                link_inserts.extend([
+                        {'person_id': persons[i], 'variant_id': max_variant_id, 'variant_type': data[i+9]  }
                         for i in range(len(persons))
-                    ]
+                    ])
 
-                self.conn.execute(person_var_ins, person_variant_ds)
+                if len(var_inserts) > 1000:
+                    self.conn.execute(self.variant_insert_stmt, var_inserts)
+                    self.conn.execute(person_var_ins, link_inserts)
+                    var_inserts = []
+                    link_inserts = []
 
-            pbar.close()
+            if len(var_inserts) > 0:
+                self.conn.execute(self.variant_insert_stmt, var_inserts)
+                self.conn.execute(person_var_ins, link_inserts)
+                var_inserts = []
+                link_inserts = []
+
         trans.commit()
 
 
@@ -70,12 +90,6 @@ class VCFInserter(object):
             else:
                 r.append( self._get(self.person_tbl, {'identifier': p }) )
         return r
-
-    def insert_variant(self, vcf_line):
-        res = self.conn.execute(self.variant_insert_stmt,
-                { VCFInserter.vcf_headers[i]: vcf_line[i] for i in range(len(VCFInserter.vcf_headers)) }
-            )
-        return res.inserted_primary_key[0]
 
     def _get(self, table, info):
         s = table.select()
