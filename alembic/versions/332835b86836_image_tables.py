@@ -26,15 +26,15 @@ def upgrade():
             sa.Column('dimensions', sa.String),
             sa.Column('origin', sa.String),
             sa.Column('spacing', sa.String),
+            sa.Column('npoints', sa.Integer),
     )
 
-    op.create_table('points',
+    op.create_table('img_data',
             sa.Column('img_id', sa.Integer, sa.ForeignKey('img.id')),
-            sa.Column('coord_no', sa.Integer),
-            sa.Column('value', sa.Float())
+            sa.Column('data', sa.LargeBinary()) # Blob
     )
 
 
 def downgrade():
-    for table in ['points', 'img']:
+    for table in ['img_data', 'img']:
         op.drop_table(table)

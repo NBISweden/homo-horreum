@@ -7,45 +7,32 @@ def get_image(id, filename):
     engine = sa.create_engine('sqlite:///test.db', echo=False)
     metadata = sa.MetaData()
 
-    img_tbl    = sa.Table('img'   , metadata, autoload=True, autoload_with=engine)
-    points_tbl = sa.Table('points', metadata, autoload=True, autoload_with=engine)
+    img_tbl      = sa.Table('img'     , metadata, autoload=True, autoload_with=engine)
+    img_data_tbl = sa.Table('img_data', metadata, autoload=True, autoload_with=engine)
 
-    img_sel = img_tbl.select(img_tbl.c.id == id)
+    img_sel = img_tbl.join(img_data_tbl).select(img_tbl.c.id==id)
     img = engine.execute(img_sel).fetchone()
-
-    points_sel = sa.select([
-            points_tbl.c.coord_no,
-            points_tbl.c.value
-        ]
-    ).where(
-        points_tbl.c.img_id == id,
-    )
-
-    points = engine.execute(points_sel).fetchall()
-    n_points = len(points)
 
     if not img:
         sys.stderr.write("Can't find an image in the database with the id {}\n".format(id))
         sys.exit(1)
 
-    with open(filename, 'w') as f:
-        f.write("# vtk DataFile Version 3.0\n")
-        f.write("Created using image_get.py (based on the Grid3 library output)\n")
-        f.write("BINARY\n")
-        f.write("DATASET STRUCTURED_POINTS\n")
-        f.write("DIMENSIONS {}\n".format( img[img_tbl.c.dimensions].replace(",", " ")))
-        f.write("ORIGIN {}\n".format( img[img_tbl.c.origin].replace(",", " ")))
-        f.write("SPACING {}\n".format( img[img_tbl.c.spacing].replace(",", " ")))
-        f.write("POINT_DATA {}\n".format(n_points))
-        f.write("SCALARS image_data double\n")
-        f.write("LOOKUP_TABLE default\n")
+    def enc_write(f, s, enc='utf-8'):
+        f.write(s.encode(enc))
 
-        dims = list( map(lambda x: int(x), img[img_tbl.c.dimensions].split(",")) )
-        npimg = np.zeros(n_points).astype(np.dtype('>f8'))
-        for p in points:
-            npimg[p[0]] = p[1]
+    with open(filename, 'wb') as f:
+        enc_write(f, "# vtk DataFile Version 3.0\n")
+        enc_write(f, "Created using image_get.py (based on the Grid3 library output)\n")
+        enc_write(f, "BINARY\n")
+        enc_write(f, "DATASET STRUCTURED_POINTS\n")
+        enc_write(f, "DIMENSIONS {}\n".format( img[img_tbl.c.dimensions].replace(",", " ")))
+        enc_write(f, "ORIGIN {}\n".format( img[img_tbl.c.origin].replace(",", " ")))
+        enc_write(f, "SPACING {}\n".format( img[img_tbl.c.spacing].replace(",", " ")))
+        enc_write(f, "POINT_DATA {}\n".format(img[img_tbl.c.npoints]))
+        enc_write(f, "SCALARS image_data double\n")
+        enc_write(f, "LOOKUP_TABLE default\n")
 
-        npimg.tofile(f)
+        f.write(img[img_data_tbl.c.data])
 
 
 if __name__ == '__main__':

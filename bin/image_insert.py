@@ -8,9 +8,9 @@ def insert_image(person, image_file, image_type):
     engine = sa.create_engine('sqlite:///test.db', echo=False)
     metadata = sa.MetaData()
 
-    person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
-    img_tbl    = sa.Table('img'   , metadata, autoload=True, autoload_with=engine)
-    points_tbl = sa.Table('points', metadata, autoload=True, autoload_with=engine)
+    person_tbl = sa.Table('person'    , metadata, autoload=True, autoload_with=engine)
+    img_tbl    = sa.Table('img'       , metadata, autoload=True, autoload_with=engine)
+    img_data_tbl = sa.Table('img_data', metadata, autoload=True, autoload_with=engine)
 
 
     person_sel = person_tbl.select(person_tbl.c.identifier == person)
@@ -36,30 +36,23 @@ def insert_image(person, image_file, image_type):
             type = image_type,
             dimensions  = ",".join([str(x) for x in img['dimensions']]),
             origin  = ",".join([str(x) for x in img['origin']]),
-            spacing = ",".join([str(x) for x in img['spacing']])
+            spacing = ",".join([str(x) for x in img['spacing']]),
+            npoints = img['n']
             )
     image_id = res.inserted_primary_key[0]
 
     dimensions = img['dimensions']
-    npoints = dimensions[0]*dimensions[1]*dimensions[2]
 
-    imgdata = img['img']
-    data = []
-    for i in tqdm(range(npoints), desc="Loading image", mininterval=1):
-        value = imgdata[i]
-        data.append({"img_id": image_id,
-                     "coord_no": i,
-                     "value": value})
-
-    print("Inserting {} values".format(len(data)))
-    conn.execute(points_tbl.insert(), data)
-
+    conn.execute( img_data_tbl.insert(), {
+            "img_id": image_id,
+            "data": img['data']
+        })
 
 def read_image(image_file):
-    with open(image_file) as f:
+    with open(image_file, 'rb') as f:
         ## First 10 lines are headerlines
         for i in range(10):
-            (tag, *vals) = str(f.readline()).strip().split(' ')
+            (tag, *vals) = str(f.readline().decode('utf-8')).strip().split(' ')
             if tag == 'DIMENSIONS':
                 dims = list(int(v) for v in vals)
             elif tag == 'SPACING':
@@ -75,10 +68,10 @@ def read_image(image_file):
                     raise ValueError('Expected image of type double, got {}'.format(vals[1]))
 
         # Next read the image
-        img = np.fromfile(f, dtype).astype('f8') # Read and convert to little endian
+        data = f.read()
 
     return {
-        'img': img,
+        'data': data,
         'origin': origin,
         'dimensions': dims,
         'spacing': spacing,
