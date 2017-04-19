@@ -17,7 +17,7 @@ class QualInserter(DatabaseConnection):
         with open(filename, 'r') as f:
             fields_map = []
             for line in f:
-                fields = line.split("\t")
+                fields = line.strip("\n").split("\t")
                 if line.startswith('#'):
                     fields[0] = fields[0][1:] # Remove comment sign from name
                     fields_map = fields
