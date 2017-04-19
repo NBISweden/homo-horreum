@@ -5,21 +5,15 @@ import json
 import re
 import tqdm
 
-class InserterError(Exception):
-    pass
+from database import DatabaseConnection, DatabaseError
 
-class MetaBolInserter(object):
+class MetaBolInserter(DatabaseConnection):
 
     def __init__(self):
-        engine = sa.create_engine('sqlite:///test.db', echo=False)
-        self.engine = engine
-        self.conn = engine.connect()
-        metadata = sa.MetaData()
-
-        self.person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
-        self.metabolomics_experiment_tbl = sa.Table('metabolomics_experiment', metadata, autoload=True, autoload_with=engine)
-        self.metabolomics_value_tbl = sa.Table('metabolomics_value', metadata, autoload=True, autoload_with=engine)
-        self.metabolomics_entity_tbl = sa.Table('metabolomics_entity', metadata, autoload=True, autoload_with=engine)
+        self.person_tbl = self.get_table('person')
+        self.metabolomics_experiment_tbl = self.get_table('metabolomics_experiment')
+        self.metabolomics_value_tbl = self.get_table('metabolomics_value')
+        self.metabolomics_entity_tbl = self.get_table('metabolomics_entity')
 
     def insert_file(self, filename, note):
         trans = self.conn.begin()
@@ -49,7 +43,7 @@ class MetaBolInserter(object):
     def get_experiment(self, person_id, note):
         person = self.get_person(person_id)
         if person == None:
-            raise InserterError("Can't find person: {}".format(person_id))
+            raise DatabaseError("Can't find person: {}".format(person_id))
 
         return self.get_or_create(self.metabolomics_experiment_tbl, {'person_id': person, 'note': note})
 
@@ -84,7 +78,7 @@ class MetaBolInserter(object):
         try:
             return self._insert(table,info,return_primary_key)
         except sa.exc.SQLAlchemyError:
-            raise InserterError("Could not create {} from {}".format(table.name, json.dumps(info)))
+            raise DatabaseError("Could not create {} from {}".format(table.name, json.dumps(info)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert an vcf data in the database")
@@ -94,5 +88,5 @@ if __name__ == '__main__':
 
     try:
         MetaBolInserter().insert_file(args.file, args.note)
-    except InserterError as e:
+    except DatabaseError as e:
         print("ERROR!: {}".format(e))
