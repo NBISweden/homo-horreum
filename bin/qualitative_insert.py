@@ -3,15 +3,11 @@ import sqlalchemy as sa
 import argparse
 import json
 
-class InserterError(Exception):
-    pass
+from database import DatabaseConnection, DatabaseError
 
-class QualInserter(object):
+class QualInserter(DatabaseConnection):
     def __init__(self):
-        engine = sa.create_engine('sqlite:///test.db', echo=False)
-        self.engine = engine
-        self.conn = engine.connect()
-
+        super().__init__()
         self.person_tbl = self.get_table('person')
         self.visit_tbl  = self.get_table('visit')
         self.m_val_tbl  = self.get_table('measurement_value')
@@ -52,8 +48,9 @@ class QualInserter(object):
                 pid = self.get_or_create_person(person)
                 vid = self.get_or_create_visit(pid, visit)
                 self.insert_measurements(vid, entry)
-            except InserterError as e:
+            except DatabaseError as e:
                 print("ERROR!: {}".format(e))
+                print("Moving on")
 
         trans.commit()
 
@@ -83,7 +80,7 @@ class QualInserter(object):
         if len(person) == 1:
             p = self._get(self.person_tbl, person)
             if not p:
-                raise InserterError("Can't find any person with {}".format(json.dumps(person)))
+                raise DatabaseError("Can't find any person with {}".format(json.dumps(person)))
             return p
         return self.get_or_create(self.person_tbl, person)
 
@@ -113,7 +110,7 @@ class QualInserter(object):
         try:
             return self._insert(table,info,return_primary_key)
         except sa.exc.SQLAlchemyError:
-            raise InserterError("Could not create {} from {}".format(table.name, json.dumps(info)))
+            raise DatabaseError("Could not create {} from {}".format(table.name, json.dumps(info)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert an qualitative datat in the database")
@@ -122,5 +119,5 @@ if __name__ == '__main__':
 
     try:
         QualInserter().insert(args.file)
-    except InserterError as e:
+    except DatabaseError as e:
         print("ERROR!: {}".format(e))
