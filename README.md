@@ -19,3 +19,15 @@ $ pip install -r requirements.txt
 ```shell
 $ alembic upgrade head
 ```
+
+## Insert data into database
+
+### Persons
+
+### Visits and information about them
+
+### VCF-files
+
+### Metabolomics
+
+### Images
