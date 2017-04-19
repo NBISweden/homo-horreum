@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sqlalchemy as sa
 
 from database import DatabaseConnection

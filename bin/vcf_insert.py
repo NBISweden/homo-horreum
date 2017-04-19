@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import sqlalchemy as sa
 import argparse
 import json
