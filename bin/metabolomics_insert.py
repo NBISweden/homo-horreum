@@ -3,14 +3,13 @@
 import sqlalchemy as sa
 import argparse
 import json
-import re
-import tqdm
 
 from database import DatabaseConnection, DatabaseError
 
 class MetaBolInserter(DatabaseConnection):
 
     def __init__(self):
+        super().__init__()
         self.person_tbl = self.get_table('person')
         self.metabolomics_experiment_tbl = self.get_table('metabolomics_experiment')
         self.metabolomics_value_tbl = self.get_table('metabolomics_value')
@@ -29,7 +28,7 @@ class MetaBolInserter(DatabaseConnection):
                 (person, *values) = line.split()
                 experiment = self.get_experiment(person, note)
 
-                ds = [{"metabolomics_experiment_id": experiment, "metabolomics_entity_id": metabolites[i], "value": values[i]} for i in range(len(values))]
+                ds = [{"metabolomics_experiment_id": experiment, "metabolomics_entity_id": db_metabolites[i], "value": values[i]} for i in range(len(values))]
 
                 self.conn.execute(self.metabolomics_value_tbl.insert(), ds)
 
@@ -82,8 +81,8 @@ class MetaBolInserter(DatabaseConnection):
             raise DatabaseError("Could not create {} from {}".format(table.name, json.dumps(info)))
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Insert an vcf data in the database")
-    parser.add_argument('--file', type=str, required=True, help="VCF-file containing data")
+    parser = argparse.ArgumentParser(description="Insert metabolomics data")
+    parser.add_argument('--file', type=str, required=True, help="TSV with metabolomics data")
     parser.add_argument('--note', type=str, required=True, help="Information about this metabolomics experiment")
     args = parser.parse_args()
 
