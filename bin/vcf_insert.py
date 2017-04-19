@@ -1,24 +1,22 @@
+#!/usr/bin/env python
+
 import sqlalchemy as sa
 import argparse
 import json
 import re
 import tqdm
 
-class InserterError(Exception):
-    pass
+from database import DatabaseConnection, DatabaseError
 
-class VCFInserter(object):
+class VCFInserter(DatabaseConnection):
     vcf_headers = [ 'chromosome', 'pos', 'identifier', 'ref', 'alt', 'qual', 'filter', 'info', 'format']
 
     def __init__(self):
-        engine = sa.create_engine('sqlite:///test.db', echo=False)
-        self.engine = engine
-        self.conn = engine.connect()
-        metadata = sa.MetaData()
+        super().__init__()
 
-        self.person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
-        self.variant_tbl = sa.Table('variant', metadata, autoload=True, autoload_with=engine)
-        self.person_variant_tbl =  sa.Table('person_variant', metadata, autoload=True, autoload_with=engine)
+        self.person_tbl = self.get_table('person')
+        self.variant_tbl = self.get_table('variant')
+        self.person_variant_tbl =  self.get_table('person_variant')
 
         self.variant_insert_stmt = self.variant_tbl.insert()
 
@@ -85,10 +83,13 @@ class VCFInserter(object):
         pair_regex = re.compile(r"^(.*?)_\1$")
         for p in person_list:
             m = pair_regex.match(p)
-            if m:
-                r.append( self._get(self.person_tbl, {'identifier': m.groups()[0]}) )
-            else:
-                r.append( self._get(self.person_tbl, {'identifier': p }) )
+            try:
+                if m:
+                    r.append( self._get(self.person_tbl, {'identifier': m.groups()[0]}) )
+                else:
+                    r.append( self._get(self.person_tbl, {'identifier': p }) )
+            except AttributeError as e:
+                raise DatabaseError("Can't find {} in database".format(p))
         return r
 
     def _get(self, table, info):
@@ -106,5 +107,5 @@ if __name__ == '__main__':
 
     try:
         VCFInserter().parse_file(args.file)
-    except InserterError as e:
+    except DatabaseError as e:
         print("ERROR!: {}".format(e))

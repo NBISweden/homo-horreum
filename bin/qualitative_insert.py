@@ -10,12 +10,11 @@ class QualInserter(object):
         engine = sa.create_engine('sqlite:///test.db', echo=False)
         self.engine = engine
         self.conn = engine.connect()
-        metadata = sa.MetaData()
 
-        self.person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
-        self.visit_tbl  = sa.Table('visit',  metadata, autoload=True, autoload_with=engine)
-        self.m_val_tbl = sa.Table('measurement_value', metadata, autoload=True, autoload_with=engine)
-        self.m_ent_tbl = sa.Table('measurement_entity', metadata, autoload=True, autoload_with=engine)
+        self.person_tbl = self.get_table('person')
+        self.visit_tbl  = self.get_table('visit')
+        self.m_val_tbl  = self.get_table('measurement_value')
+        self.m_ent_tbl  = self.get_table('measurement_entity')
 
     def parse_file(self, filename):
         with open(filename, 'r') as f:

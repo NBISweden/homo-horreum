@@ -2,17 +2,13 @@ import sqlalchemy as sa
 import argparse
 import json
 
-class InserterError(Exception):
-    pass
+from database import DatabaseConnection, DatabaseError
 
-class PersonInserter(object):
+class PersonInserter(DatabaseConnection):
     def __init__(self):
-        engine = sa.create_engine('sqlite:///test.db', echo=False)
-        self.engine = engine
-        self.conn = engine.connect()
-        metadata = sa.MetaData()
+        super().__init__()
 
-        self.person_tbl = sa.Table('person', metadata, autoload=True, autoload_with=engine)
+        self.person_tbl = self.get_table('person')
 
     def insert_person(self, identifier, group, sex):
         self.get_or_create(self.person_tbl, {
@@ -48,7 +44,7 @@ class PersonInserter(object):
         try:
             return self._insert(table,info,return_primary_key)
         except sa.exc.SQLAlchemyError:
-            raise InserterError("Could not create {} from {}".format(table.name, json.dumps(info)))
+            raise DatabaseError("Could not create {} from {}".format(table.name, json.dumps(info)))
 
 
 if __name__ == '__main__':
@@ -60,6 +56,6 @@ if __name__ == '__main__':
 
     try:
         PersonInserter().insert_person(args.identifier, args.group, args.sex)
-    except InserterError as e:
+    except DatabaseError as e:
         print("ERROR!: {}".format(e))
 
