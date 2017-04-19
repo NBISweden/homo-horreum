@@ -11,7 +11,6 @@ def insert_persons(num=100):
 
     for i in range(num):
         person_identifier = "pt{:03}".format(i)
-        print("Inserting {}".format(person_identifier))
         conn.execute(insert,
                 identifier=person_identifier,
                 group = random.choice(['control', 'exp']),
