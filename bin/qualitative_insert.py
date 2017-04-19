@@ -84,34 +84,6 @@ class QualInserter(DatabaseConnection):
             return p
         return self.get_or_create(self.person_tbl, person)
 
-    def _get(self, table, info, return_primary_key=True):
-        s = table.select()
-        for k, v in info.items():
-            s = s.where( table.c[k] == v )
-        r = self.conn.execute(s).fetchone()
-
-        if not return_primary_key:
-            return None
-        if r:
-            return r.id
-        return None
-
-    def _insert(self, table, info, return_primary_key=True):
-        res = self.conn.execute(table.insert(), [ info ])
-        if not return_primary_key:
-            return
-        id = res.inserted_primary_key
-        return id[0]
-
-    def get_or_create(self, table, info, return_primary_key=True):
-        r = self._get(table, info, return_primary_key)
-        if r:
-            return r
-        try:
-            return self._insert(table,info,return_primary_key)
-        except sa.exc.SQLAlchemyError:
-            raise DatabaseError("Could not create {} from {}".format(table.name, json.dumps(info)))
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert an qualitative datat in the database")
     parser.add_argument('--file',   type=str, required=True, help="TSV file containing data")

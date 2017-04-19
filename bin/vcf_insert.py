@@ -91,13 +91,6 @@ class VCFInserter(DatabaseConnection):
                 raise DatabaseError("Can't find {} in database".format(p))
         return r
 
-    def _get(self, table, info):
-        s = table.select()
-        for k, v in info.items():
-            s = s.where( table.c[k] == v )
-        r = self.conn.execute(s).fetchone()
-        return r.id
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert an vcf data in the database")
