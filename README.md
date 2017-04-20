@@ -184,3 +184,11 @@ optional arguments:
 ```shell
 $ bin/visit_insert.py --file visit_information.tsv
 ```
+
+## TODOs for a future iteration
+
+* Support multiple database engines (postgresql, mysql).
+* Support for more types of data. Proteomics and such. It is probably possible
+  to abstract the metabolomics module of the database in a way so that the
+  database structure can be shared.
+* Scripts to export data.
