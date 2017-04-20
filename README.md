@@ -131,4 +131,40 @@ There are also scripts for exporting and listing images in the database.
 
 ### Visits and information about them
 
+Since this is more free from data there are a few restrictions put on the input
+file to enable a more straightforward import of the data into the database. I
+have made the following assumptions about the input datafile:
 
+ 1. Input file is tab separated.
+ 2. No column value may contain a tab.
+ 3. First column contains the person ID (must already exist in the database)
+ 4. Visit information is specified as following
+
+    There has to be at least 2 column with information about the _visit_:
+     * _visit_date_ - the date of the visit
+     * _visit_code_ - the visit code of the visit
+
+    There _can_ also be a column called _visit_comment_ that has a freeform
+    comment with details about the visit.
+ 5. All the other columns in the file will then be added as key:value pairs
+    associated with the specified visit.
+
+Note that if there's some extra information that is related to for example the
+metabolomics data, the best way to add this information is as a visit. One way
+to link this information is to use the visit_code as the note for the
+metabolomics experiment.
+
+```shell
+$ bin/visit_insert.py -h
+usage: visit_insert.py [-h] --file FILE
+
+Add information about persons to the database
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --file FILE  TSV file with data
+```
+
+```shell
+$ bin/visit_insert.py --file visit_information.tsv
+```
