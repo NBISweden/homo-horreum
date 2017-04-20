@@ -33,6 +33,8 @@ class QualInserter(DatabaseConnection):
         def extract_dict(d, keys):
             out = dict()
             for k,v in list(d.items()):
+                if not v:
+                    continue
                 if k in keys:
                     d.pop(k)
                     out[keys[k]] = v
