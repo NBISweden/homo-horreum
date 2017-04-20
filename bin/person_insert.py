@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert a perons in the database")
     parser.add_argument('--identifier', type=str, required=True, help="Identifier for the person")
     parser.add_argument('--group', type=str, required=True, help="Experimental group")
-    parser.add_argument('--sex', type=str, required=True, help="The sex")
+    parser.add_argument('--sex', type=str, required=True, help="The sex, M, F or U")
     args = parser.parse_args()
 
     try:

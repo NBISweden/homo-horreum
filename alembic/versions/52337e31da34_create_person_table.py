@@ -22,7 +22,7 @@ def upgrade():
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('identifier', sa.String, nullable=False, unique=True),
         sa.Column('group', sa.String, nullable=False),
-        sa.Column('sex', sa.Enum('M','F'), nullable=False)
+        sa.Column('sex', sa.Enum('M','F','U'), nullable=False)
     )
 
 
