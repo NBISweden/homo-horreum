@@ -17,6 +17,22 @@ more freeform information related to for example metabolomics data, then a
 visit has to be defined for that and then you can add that to the database.
 
 
+## Location of database
+
+The location of the database is configured with the `sqlalchemy.url` key in
+the `alembic.ini` file, both alembic, the database migration engine, and all
+loading scripts read this file to connect to the database.
+
+For a simple SQLite database this should be configured something like this:
+
+```
+sqlalchemy.url = sqlite:///database.db
+```
+
+It is possible to specify other database backends but that is currently
+untested functionality so it will probably not work without changes to the
+loading scripts and/or schema.
+
 ## Prerequisites
 
 Python 3 and pip preferably with virtualenv.
