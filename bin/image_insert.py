@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sqlalchemy as sa
 import argparse
+import zlib
 
 from database import DatabaseConnection, DatabaseError
 
@@ -46,7 +47,7 @@ class ImageInserter(DatabaseConnection):
 
         self.conn.execute( self.img_data_tbl.insert(), {
                 "img_id": image_id,
-                "data": img['data']
+                "data": zlib.compress(img['data'])
             })
 
         trans.commit()
