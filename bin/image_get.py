@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sqlalchemy as sa
 import argparse
+import zlib
 
 from database import DatabaseConnection, DatabaseError
 
@@ -19,6 +20,9 @@ class ImageGetter(DatabaseConnection):
         if not img:
             raise DatabaseError("Can't find an image in the database with the id {}\n".format(id))
 
+        # Decompress
+        img_data = zlib.decompress(img[self.img_data_tbl.c.data])
+
         # Small helper function for writing encoded data to a binary stream
         def enc_write(f, s, enc='utf-8'):
             f.write(s.encode(enc))
@@ -35,7 +39,7 @@ class ImageGetter(DatabaseConnection):
             enc_write(f, "SCALARS image_data double\n")
             enc_write(f, "LOOKUP_TABLE default\n")
 
-            f.write(img[self.img_data_tbl.c.data])
+            f.write(img_data)
 
 
 if __name__ == '__main__':
