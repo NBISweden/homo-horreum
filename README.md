@@ -102,7 +102,11 @@ $ bin/vcf_insert.py --file file.vcf
 Metabolomics data is tab-separated files with persons as rows and metabolites
 as columns. Since there can be multiple different techniques used for the same
 sample you have to supply a _note_ for each insertion. Each file will be
-imported as one _metabolomics experiment_.
+imported as one _metabolomics experiment_. There are also support for import
+of files with metadata about the metabolites themselves.
+
+
+#### Add the metabolomics experiment to the database
 
 ```shell
 $ bin/metabolomics_insert.py -h
@@ -119,6 +123,28 @@ optional arguments:
 ```shell
 $ bin/metabolomics_insert.py --file metabolomcs.tsv --note lcms-data
 ```
+
+#### Add metadata about the metabolites
+
+The `id` parameter specifies the name of the column that contains the primary
+id for the metabolites, the one that is used when adding the values above.
+
+```shell
+$ bin/metabolomics_add_entity_mappings.py -h
+usage: metabolomics_add_entity_mappings.py [-h] --file FILE --id ID
+
+Insert metabolomics entity info
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --file FILE  TSV containing info
+  --id ID      The name of the ID column
+```
+
+```shell
+$ bin/metabolomics_add_entity_mappings.py --file mappings.tsv --id custom_ID
+```
+
 
 ### Images
 
