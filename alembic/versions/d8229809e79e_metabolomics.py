@@ -23,15 +23,15 @@ def upgrade():
             sa.Column('note', sa.Text(), nullable=True)
         )
 
+    op.create_table('metabolomics_entity',
+            sa.Column('id', sa.Integer, primary_key=True),
+            sa.Column('name', sa.String, nullable=False)
+        )
+
     op.create_table('metabolomics_value',
             sa.Column('metabolomics_experiment_id', sa.Integer, sa.ForeignKey('metabolomics_experiment.id')),
             sa.Column('metabolomics_entity_id', sa.Integer, sa.ForeignKey('metabolomics_entity.id')),
             sa.Column('value', sa.Float(), nullable=False)
-        )
-
-    op.create_table('metabolomics_entity',
-            sa.Column('id', sa.Integer, primary_key=True),
-            sa.Column('name', sa.String, nullable=False)
         )
 
     op.create_table('metabolomics_entity_info',

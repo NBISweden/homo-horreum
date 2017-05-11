@@ -50,18 +50,6 @@ class EntityInserter(DatabaseConnection):
 
         trans.commit()
 
-    def _get(self, table, info, return_primary_key=True):
-        s = table.select()
-        for k, v in info.items():
-            s = s.where( table.c[k] == v )
-        r = self.conn.execute(s).fetchone()
-
-        if not return_primary_key:
-            return None
-        if r:
-            return r.id
-        return None
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert metabolomics entity info")
     parser.add_argument('--file', type=str, required=True, help="TSV containing info")
