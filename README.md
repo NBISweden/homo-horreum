@@ -101,23 +101,29 @@ $ bin/vcf_insert.py --file file.vcf
 
 Metabolomics data is tab-separated files with persons as rows and metabolites
 as columns. Since there can be multiple different techniques used for the same
-sample you have to supply a _note_ for each insertion. Each file will be
-imported as one _metabolomics experiment_.
+sample you have to supply a _technology_ and _tissue_ for each insertion, also
+a _note_ can be useful (e.g. source of data or some other information that
+might be good to have). Each file will be imported as one _metabolomics
+experiment_.
 
 ```shell
 $ bin/metabolomics_insert.py -h
-usage: metabolomics_insert.py [-h] --file FILE --note NOTE
+usage: metabolomics_insert.py [-h] --file FILE --technology TECHNOLOGY
+                              --tissue TISSUE --note NOTE
 
 Insert metabolomics data
 
 optional arguments:
-  -h, --help   show this help message and exit
-  --file FILE  TSV with metabolomics data
-  --note NOTE  Information about this metabolomics experiment
+  -h, --help            show this help message and exit
+  --file FILE           TSV with metabolomics data
+  --technology TECHNOLOGY
+                        The technology that was used (lcms, gcms...)
+  --tissue TISSUE       The tissue that was sampled
+  --note NOTE           Information about this metabolomics experiment
 ```
 
 ```shell
-$ bin/metabolomics_insert.py --file metabolomcs.tsv --note lcms-data
+$ bin/metabolomics_insert.py --file metabolomcs.tsv --note nice-stuff --technology lcms --tissue liver
 ```
 
 ### Images
