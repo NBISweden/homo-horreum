@@ -44,7 +44,8 @@ def upgrade():
     op.create_table('person_variant',
             sa.Column('person_id', sa.Integer, sa.ForeignKey('person.id')),
             sa.Column('variant_id', sa.Integer, sa.ForeignKey('variant.id')),
-            sa.Column('variant_type', sa.Text)
+            sa.Column('alleleA', sa.Text),
+            sa.Column('alleleB', sa.Text)
     )
 
 

@@ -57,10 +57,16 @@ class VCFInserter(DatabaseConnection):
                 variant_ds['id'] = max_variant_id
                 var_inserts.append(variant_ds)
 
-                link_inserts.extend([
-                        {'person_id': persons[i], 'variant_id': max_variant_id, 'variant_type': data[i+9]  }
-                        for i in range(len(persons))
-                    ])
+                def get_variant(field, num):
+                     return field.split('/')[num]
+
+                link_inserts.extend([{
+                        'person_id': persons[i],
+                        'variant_id': max_variant_id,
+                        'alleleA': get_variant(data[i+9], 0),
+                        'alleleB': get_variant(data[i+9], 1)
+                    } for i in range(len(persons))
+                ])
 
                 if len(var_inserts) > 1000:
                     self.conn.execute(self.variant_insert_stmt, var_inserts)
