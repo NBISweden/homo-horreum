@@ -20,6 +20,8 @@ def upgrade():
     op.create_table('metabolomics_experiment',
             sa.Column('id', sa.Integer, primary_key=1),
             sa.Column('person_id', sa.Integer, sa.ForeignKey('person.id')),
+            sa.Column('technology', sa.Text(), nullable=True),
+            sa.Column('tissue', sa.Text(), nullable=True),
             sa.Column('note', sa.Text(), nullable=True)
         )
 
