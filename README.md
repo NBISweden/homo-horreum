@@ -126,6 +126,28 @@ optional arguments:
 $ bin/metabolomics_insert.py --file metabolomcs.tsv --note nice-stuff --technology lcms --tissue liver
 ```
 
+#### Add metadata about the metabolites
+
+The `id` parameter specifies the name of the column that contains the primary
+id for the metabolites, the one that is used when adding the values above.
+
+```shell
+$ bin/metabolomics_add_entity_mappings.py -h
+usage: metabolomics_add_entity_mappings.py [-h] --file FILE --id ID
+
+Insert metabolomics entity info
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --file FILE  TSV containing info
+  --id ID      The name of the ID column
+```
+
+```shell
+$ bin/metabolomics_add_entity_mappings.py --file mappings.tsv --id custom_ID
+```
+
+
 ### Images
 
 Images are stored as blobs more or less as the vtk-file is reprenseted. Though
