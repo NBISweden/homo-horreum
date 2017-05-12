@@ -15,7 +15,7 @@ class MetaBolInserter(DatabaseConnection):
         self.metabolomics_value_tbl = self.get_table('metabolomics_value')
         self.metabolomics_entity_tbl = self.get_table('metabolomics_entity')
 
-    def insert_file(self, filename, note):
+    def insert_file(self, filename, note, technology, tissue):
         trans = self.conn.begin()
 
         with open(filename, 'r') as f:
@@ -26,7 +26,7 @@ class MetaBolInserter(DatabaseConnection):
 
             for line in f:
                 (person, *values) = line.split()
-                experiment = self.get_experiment(person, note)
+                experiment = self.get_experiment(person, note, technology, tissue)
 
                 ds = [{"metabolomics_experiment_id": experiment, "metabolomics_entity_id": db_metabolites[i], "value": values[i]} for i in range(len(values))]
 
@@ -40,12 +40,17 @@ class MetaBolInserter(DatabaseConnection):
             ids.append( self.get_or_create(self.metabolomics_entity_tbl, {"name": m}) )
         return ids
 
-    def get_experiment(self, person_id, note):
+    def get_experiment(self, person_id, note, technology, tissue):
         person = self.get_person(person_id)
         if person == None:
             raise DatabaseError("Can't find person: {}".format(person_id))
 
-        return self.get_or_create(self.metabolomics_experiment_tbl, {'person_id': person, 'note': note})
+        return self.get_or_create(self.metabolomics_experiment_tbl, {
+            'person_id': person,
+            'note': note,
+            'technology': technology,
+            'tissue': tissue
+        })
 
     def get_person(self, person_id):
         return self._get(self.person_tbl, {'identifier': person_id })
@@ -53,10 +58,12 @@ class MetaBolInserter(DatabaseConnection):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Insert metabolomics data")
     parser.add_argument('--file', type=str, required=True, help="TSV with metabolomics data")
+    parser.add_argument('--technology', type=str, required=True, help="The technology that was used (lcms, gcms...)")
+    parser.add_argument('--tissue', type=str, required=True, help="The tissue that was sampled")
     parser.add_argument('--note', type=str, required=True, help="Information about this metabolomics experiment")
     args = parser.parse_args()
 
     try:
-        MetaBolInserter().insert_file(args.file, args.note)
+        MetaBolInserter().insert_file(args.file, args.note, args.technology, args.tissue)
     except DatabaseError as e:
         print("ERROR!: {}".format(e))
