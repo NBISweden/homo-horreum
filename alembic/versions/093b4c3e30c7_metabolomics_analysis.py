@@ -17,8 +17,26 @@ depends_on = None
 
 
 def upgrade():
-    pass
+    op.create_table('metabolomics_analysis',
+        sa.Column('id', sa.Integer, primary_key=1),
+        sa.Column('metabolite_id', sa.Integer, sa.ForeignKey('metabolomics_entity.id')),
+        sa.Column('technology', sa.Text(), nullable=True),
+        sa.Column('tissue', sa.Text(), nullable=True),
+        sa.Column('note', sa.Text(), nullable=True),
+        sa.Column('date', sa.DateTime(), server_default=sa.sql.func.now())
+    )
+    op.create_table('test_type',
+        sa.Column('id', sa.Integer, primary_key=1),
+        sa.Column('test', sa.Text(), nullable=True)
+    )
+    op.create_table('test_value',
+        sa.Column('metabolomics_analysis_id', sa.Integer, sa.ForeignKey('metabolomics_analysis.id')),
+        sa.Column('test_type_id', sa.Integer, sa.ForeignKey('test_type.id')),
+        sa.Column('value', sa.Float())
+    )
 
 
 def downgrade():
-    pass
+    op.drop_table('metabolomics_analysis')
+    op.drop_table('test_type')
+    op.drop_table('test_value')
